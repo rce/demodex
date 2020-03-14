@@ -34,6 +34,7 @@ class ScalatraBootstrap extends LifeCycle {
 
 class FooApi extends ScalatraServlet {
   get("/foo") {
-    "Haloo\n"
+    contentType = "application/json"
+    """{"status": "SUCCESS"}"""
   }
 }
