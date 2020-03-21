@@ -17,6 +17,7 @@ const localConfiguration = {
   mode: "development",
   devtool: "inline-source-map",
   devServer: {
+    port: 8888,
     publicPath: "/",
     contentBase: distDir,
     compress: true,
