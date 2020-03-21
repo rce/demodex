@@ -122,11 +122,19 @@ class AppInfraStack extends cdk.Stack {
             s3BucketSource: bucket,
             originAccessIdentity,
           },
-          behaviors: [{
-            isDefaultBehavior: true,
-            allowedMethods: cloudfront.CloudFrontAllowedMethods.GET_HEAD_OPTIONS,
-            cachedMethods: cloudfront.CloudFrontAllowedCachedMethods.GET_HEAD_OPTIONS,
-          }],
+          behaviors: [
+            {
+              pathPattern: "/",
+              minTtl: cdk.Duration.minutes(0),
+              maxTtl: cdk.Duration.minutes(0),
+            },
+            {
+              isDefaultBehavior: true,
+              allowedMethods: cloudfront.CloudFrontAllowedMethods.GET_HEAD_OPTIONS,
+              cachedMethods: cloudfront.CloudFrontAllowedCachedMethods.GET_HEAD_OPTIONS,
+              minTtl: cdk.Duration.hours(1),
+            }
+          ],
         },
         {
           customOriginSource: {
@@ -140,7 +148,9 @@ class AppInfraStack extends cdk.Stack {
             forwardedValues: {
               queryString: true,
               headers: [],
-            }
+            },
+            minTtl: cdk.Duration.minutes(0),
+            maxTtl: cdk.Duration.minutes(0),
           }],
         }
       ]
