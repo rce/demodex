@@ -12,7 +12,7 @@ function App() {
       setState({ ...state, responseJson: json })
 
     }, 2000)
-  }, [state])
+  }, [])
 
   return (
     <div>
