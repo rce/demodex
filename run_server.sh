@@ -4,7 +4,7 @@ repo="$( cd "$( dirname "$0" )" && pwd )"
 
 function main {
   cd "$repo/server"
-  ./sbt clean run
+  ./sbt run
 }
 
 main "$@"
