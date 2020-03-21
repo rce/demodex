@@ -3,13 +3,30 @@ const {useState, useEffect} = require("react")
 const {render} = require("react-dom")
 
 function App() {
-  const [state, setState] = useState({})
+  const [state, setState] = useState({
+    state: "LOADING",
+  })
 
   useEffect(() => {
     setTimeout(async () => {
       const response = await fetch("/api/foo")
-      const json = await response.json()
-      setState({ ...state, responseJson: json })
+      if (response.status === 200) {
+        setState({
+          ...state,
+          state: "LOADED",
+          responseStatus: response.status,
+          responseStatusText: response.statusText,
+          response: await response.json(),
+        })
+      } else {
+        setState({
+          ...state,
+          state: "ERROR",
+          responseStatus: response.status,
+          responseStatusText: response.statusText,
+          response: await response.text(),
+        })
+      }
 
     }, 2000)
   }, [])
