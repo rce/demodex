@@ -4,6 +4,7 @@ repo="$( cd "$( dirname "$0" )" && pwd )"
 
 function main {
   export ENV="prod"
+  export TAG="$(git rev-parse HEAD)"
 
   export AWS_PROFILE="demodex-prod"
   export AWS_REGION="eu-west-1"
@@ -16,6 +17,7 @@ function main {
   npm ci
   deploy_base_infra
   deploy_client_assets
+  upload_server_image
   deploy_app_infra
 }
 
@@ -34,6 +36,16 @@ function deploy_client_assets {
   aws s3 sync . "s3://demodex-assets-$ENV/"
 }
 
+function upload_server_image {
+  cd "$repo/server"
+
+  local ecr_uri="$(aws ecr describe-repositories --repository-names server --output text --query repositories[0].repositoryUri)"
+  docker tag "demodex:$TAG" "$ecr_uri:$TAG"
+
+  $(aws ecr get-login --no-include-email)
+  docker push "$ecr_uri:$TAG"
+}
+
 function build_client {
   cd "$repo/client"
   npm ci
@@ -44,7 +56,7 @@ function build_server {
   cd "$repo/server"
   ./sbt ";clean;assembly"
   cp "$repo/server/target/scala-2.13/demodex.jar" demodex.jar
-  docker build -t "demodex:local-$(git rev-parse HEAD)" .
+  docker build -t "demodex:$TAG" .
 }
 
 function deploy_stacks {
