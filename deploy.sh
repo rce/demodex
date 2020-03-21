@@ -10,6 +10,7 @@ function main {
   export AWS_DEFAULT_REGION="$AWS_REGION"
 
   build_client
+  build_server
 
   cd "$repo/infra"
   npm ci
@@ -37,6 +38,13 @@ function build_client {
   cd "$repo/client"
   npm ci
   npx webpack --env prod
+}
+
+function build_server {
+  cd "$repo/server"
+  ./sbt ";clean;assembly"
+  cp "$repo/server/target/scala-2.13/demodex.jar" demodex.jar
+  docker build -t "demodex:local-$(git rev-parse HEAD)" .
 }
 
 function deploy_stacks {

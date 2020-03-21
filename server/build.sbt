@@ -1,6 +1,13 @@
 val scalatraVersion = "2.7.0"
 
+val fooAssemblySettings = Seq(
+  assemblyJarName in assembly := "demodex.jar",
+  test in assembly := {},
+  mainClass in assembly := Some("com.example.foobar.Main"),
+)
+
 lazy val root = (project in file("."))
+  .settings(fooAssemblySettings: _*)
   .settings(
     organization := "com.example",
     name := "foobar",
