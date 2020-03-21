@@ -11,14 +11,21 @@ function main {
 
   build_client
 
+  cd "$repo/infra"
+  npm ci
   deploy_base_infra
   deploy_client_assets
+  deploy_app_infra
 }
 
 function deploy_base_infra {
   cd "$repo/infra"
-  npm install
   deploy_stacks HostedZone VPC AppBaseInfra
+}
+
+function deploy_app_infra {
+  cd "$repo/infra"
+  deploy_stacks AppInfra
 }
 
 function deploy_client_assets {
