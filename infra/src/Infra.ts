@@ -5,6 +5,8 @@ import * as ec2 from "@aws-cdk/aws-ec2"
 import * as ecr from "@aws-cdk/aws-ecr"
 import * as s3 from "@aws-cdk/aws-s3"
 
+const ENV = requireEnv("ENV")
+
 async function main() {
   const env = {
     account: process.env.CDK_DEFAULT_ACCOUNT,
@@ -60,9 +62,17 @@ class AppBaseInfraStack extends cdk.Stack {
 
     this.bucket = new s3.Bucket(this, "Bucket", {
       removalPolicy: RemovalPolicy.DESTROY,
-      bucketName: "demodex-assets-prod",
+      bucketName: "demodex-assets-" + ENV,
     })
   }
+}
+
+function requireEnv(name: string): string {
+  const value = process.env[name]
+  if (!value) {
+    throw Error(`FATAL !process.env["${name}"]`)
+  }
+  return value
 }
 
 main().catch(err => {
