@@ -30,7 +30,6 @@ class Database(dbConfig: DatabaseConfig) {
     withConnection { connection =>
       try {
         val tx = new Transaction(connection)
-        tx.execute("BEGIN")
         val result = func(tx)
         connection.commit()
         result
