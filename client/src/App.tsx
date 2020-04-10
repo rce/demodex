@@ -8,7 +8,7 @@ function App() {
   })
 
   useEffect(() => {
-    setTimeout(async () => {
+    const effect = async () => {
       const response = await fetch("/api/foo")
       if (response.status === 200) {
         setState({
@@ -27,8 +27,8 @@ function App() {
           response: await response.text(),
         })
       }
-
-    }, 2000)
+    }
+    effect()
   }, [])
 
   return (

@@ -220,9 +220,11 @@ class AppInfraStack extends cdk.Stack {
       logging: ecs.LogDriver.awsLogs({ logGroup, streamPrefix: "backend" }),
       environment: {
         DATABASE_HOSTNAME: db.instance.instanceEndpoint.hostname,
-        DATABASE_PORT: db.instance.instanceEndpoint.port.toString(),
+        // Does not work for whatever reason
+        //DATABASE_PORT: db.instance.instanceEndpoint.port.toString(),
+        DATABASE_PORT: "5432",
         DATABASE_USERNAME: "demodex",
-        DATABASE_NAME: "demodex",
+        DATABASE_NAME: "postgres", // Use "demodex" when the database is created
       },
       secrets: {
         DATABASE_PASSWORD: ecs.Secret.fromSecretsManager(db.password),

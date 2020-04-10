@@ -4,7 +4,13 @@ repo="$( cd "$( dirname "$0" )" && pwd )"
 
 function main {
   cd "$repo/server"
-  ./sbt run
+
+  export DATABASE_HOSTNAME="localhost"
+  export DATABASE_PORT="5432"
+  export DATABASE_NAME="demodex"
+  export DATABASE_USERNAME="demodex"
+  export DATABASE_PASSWORD="demodex"
+  ./sbt "runMain com.example.foobar.Main"
 }
 
 main "$@"

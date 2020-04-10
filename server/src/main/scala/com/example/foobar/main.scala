@@ -33,8 +33,21 @@ class ScalatraBootstrap extends LifeCycle {
 }
 
 class FooApi extends ScalatraServlet {
+  val db = new Database(new DatabaseConfig())
   get("/foo") {
     contentType = "application/json"
-    """{"status": "SUCCESS"}"""
+
+    okFromDatabase() match {
+      case Some(ok) =>
+        status = 200
+        s"""{"status": "${ok}"}"""
+      case None =>
+        status = 500
+        """{"status": "FAILURE"}"""
+
+    }
   }
+
+  def okFromDatabase() =
+    db.inTransaction(_.selectOne("select 'OK'")(_.getString(1)))
 }
