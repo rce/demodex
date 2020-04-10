@@ -1,8 +1,13 @@
 #!/usr/bin/env bash
 set -o errexit -o nounset -o pipefail
 repo="$( cd "$( dirname "$0" )" && pwd )"
+source "$repo/util.sh"
 
 function main {
+  use_node_version "12"
+  use_python_version "3.8.2"
+  use_pipenv_virtualenv "$repo"
+
   export ENV="prod"
   export TAG="$(git rev-parse HEAD)"
 
@@ -60,7 +65,7 @@ function build_server {
 }
 
 function deploy_stacks {
-  npx cdk --profile "$AWS_PROFILE" deploy --app "npx ts-node src/Infra.ts" "$@"
+  npx cdk --profile "$AWS_PROFILE" deploy --exclusively --app "npx ts-node src/Infra.ts" "$@"
 }
 
 main "$@"

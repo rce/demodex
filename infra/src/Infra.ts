@@ -10,6 +10,8 @@ import * as s3 from "@aws-cdk/aws-s3"
 import * as logs from "@aws-cdk/aws-logs"
 import * as cloudfront from "@aws-cdk/aws-cloudfront"
 import * as certificatemanager from "@aws-cdk/aws-certificatemanager"
+import * as rds from "@aws-cdk/aws-rds"
+import * as secretsmanager from "@aws-cdk/aws-secretsmanager"
 
 const ENV = requireEnv("ENV")
 const TAG = requireEnv("TAG")
@@ -103,7 +105,8 @@ class AppInfraStack extends cdk.Stack {
 
     const {hostedZone, bucket, originAccessIdentity} = props
 
-    const backendDnsRecord = this.backendService(props)
+    const database = this.database(props)
+    const backendDnsRecord = this.backendService(props, database)
 
     const certificate = new certificatemanager.DnsValidatedCertificate(this, "Certificate", {
       hostedZone,
@@ -165,7 +168,39 @@ class AppInfraStack extends cdk.Stack {
     })
   }
 
-  backendService({ hostedZone, vpc, repository }: AppInfraProps) {
+  database({ hostedZone, vpc }: AppInfraProps) {
+    const password = new secretsmanager.Secret(this, "DatabasePassword", {
+      secretName: "DatabasePassword"
+    })
+
+    const instance = new rds.DatabaseInstance(this, "DatabaseInstance", {
+      vpc,
+      iamAuthentication: true,
+      vpcPlacement: { subnetType: ec2.SubnetType.PUBLIC },
+      engine: rds.DatabaseInstanceEngine.POSTGRES,
+      instanceClass: ec2.InstanceType.of(ec2.InstanceClass.BURSTABLE3, ec2.InstanceSize.MICRO),
+      masterUsername: "demodex",
+      masterUserPassword: password.secretValue,
+    })
+
+    instance.connections.allowDefaultPortFrom(
+      ec2.Peer.ipv4("84.250.251.115/32"),
+      "Allow developer access"
+    )
+
+    new route53.CnameRecord(this, "DatabaseDnsRecord", {
+      zone: hostedZone,
+      recordName: `db.${domainName}`,
+      domainName: instance.dbInstanceEndpointAddress,
+    })
+
+    return { instance, password }
+  }
+
+  backendService(
+    { hostedZone, vpc, repository }: AppInfraProps,
+    db: { instance: rds.DatabaseInstance, password: secretsmanager.Secret }
+  ) {
     const cluster = new ecs.Cluster(this, "Cluster", { vpc })
 
     const logGroup = new logs.LogGroup(this, "BackendLogGroup", {
@@ -183,6 +218,15 @@ class AppInfraStack extends cdk.Stack {
       image: ecs.ContainerImage.fromEcrRepository(repository, TAG),
       essential: true,
       logging: ecs.LogDriver.awsLogs({ logGroup, streamPrefix: "backend" }),
+      environment: {
+        DATABASE_HOSTNAME: db.instance.instanceEndpoint.hostname,
+        DATABASE_PORT: db.instance.instanceEndpoint.port.toString(),
+        DATABASE_USERNAME: "demodex",
+        DATABASE_NAME: "demodex",
+      },
+      secrets: {
+        DATABASE_PASSWORD: ecs.Secret.fromSecretsManager(db.password),
+      }
     })
     container.addPortMappings({
       containerPort: 8080,
@@ -203,6 +247,8 @@ class AppInfraStack extends cdk.Stack {
       // task to have outbound network access to pull an image.
       assignPublicIp: true,
     })
+
+    db.instance.connections.allowDefaultPortFrom(service, "Allow application access")
 
     const loadBalancer = new elbv2.ApplicationLoadBalancer(this, "LoadBalancer", {
       vpc,
