@@ -129,6 +129,7 @@ class AppInfraStack extends cdk.Stack {
             {
               pathPattern: "/",
               minTtl: cdk.Duration.minutes(0),
+              defaultTtl: cdk.Duration.minutes(0),
               maxTtl: cdk.Duration.minutes(0),
             },
             {
@@ -136,6 +137,8 @@ class AppInfraStack extends cdk.Stack {
               allowedMethods: cloudfront.CloudFrontAllowedMethods.GET_HEAD_OPTIONS,
               cachedMethods: cloudfront.CloudFrontAllowedCachedMethods.GET_HEAD_OPTIONS,
               minTtl: cdk.Duration.hours(1),
+              defaultTtl: cdk.Duration.hours(1),
+              maxTtl: cdk.Duration.hours(24),
             }
           ],
         },
@@ -153,6 +156,7 @@ class AppInfraStack extends cdk.Stack {
               headers: [],
             },
             minTtl: cdk.Duration.minutes(0),
+            defaultTtl: cdk.Duration.minutes(0),
             maxTtl: cdk.Duration.minutes(0),
           }],
         }
