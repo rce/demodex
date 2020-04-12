@@ -170,7 +170,10 @@ class AppInfraStack extends cdk.Stack {
 
   database({ hostedZone, vpc }: AppInfraProps) {
     const password = new secretsmanager.Secret(this, "DatabasePassword", {
-      secretName: "DatabasePassword"
+      secretName: "DatabasePassword",
+      generateSecretString: {
+        excludeCharacters: `/@" `,
+      }
     })
 
     const instance = new rds.DatabaseInstance(this, "DatabaseInstance", {
