@@ -177,6 +177,8 @@ class AppInfraStack extends cdk.Stack {
     })
 
     const instance = new rds.DatabaseInstance(this, "DatabaseInstance", {
+      removalPolicy: cdk.RemovalPolicy.DESTROY,
+      deletionProtection: false,
       vpc,
       iamAuthentication: true,
       vpcPlacement: { subnetType: ec2.SubnetType.PUBLIC },
