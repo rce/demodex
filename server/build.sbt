@@ -1,10 +1,10 @@
-val scalatraVersion = "2.7.0"
-
 val fooAssemblySettings = Seq(
   assemblyJarName in assembly := "demodex.jar",
   test in assembly := {},
   mainClass in assembly := Some("com.example.foobar.Main"),
 )
+
+val log4jVersion = "2.13.1"
 
 lazy val root = (project in file("."))
   .settings(fooAssemblySettings: _*)
@@ -15,8 +15,10 @@ lazy val root = (project in file("."))
     scalaVersion := "2.13.1",
     libraryDependencies ++= Seq(
       "com.zaxxer" % "HikariCP" % "3.4.2",
+      "org.apache.logging.log4j" % "log4j-core" % log4jVersion,
+      "org.apache.logging.log4j" % "log4j-api" % log4jVersion,
       "org.eclipse.jetty" % "jetty-webapp" % "9.4.27.v20200227",
       "org.postgresql" % "postgresql" % "42.2.12",
-      "org.scalatra" %% "scalatra" % scalatraVersion,
+      "org.scalatra" %% "scalatra" % "2.7.0",
     )
   )

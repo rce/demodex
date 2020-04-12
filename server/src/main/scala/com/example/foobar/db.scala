@@ -7,11 +7,13 @@ import com.zaxxer.hikari.{HikariConfig, HikariDataSource}
 import scala.collection.mutable.ArrayBuffer
 
 class DatabaseConfig {
+  val driverClassName = "org.postgresql.Driver"
   val dbName = requireEnv("DATABASE_NAME")
   val username = requireEnv("DATABASE_USERNAME")
   val password = requireEnv("DATABASE_PASSWORD")
   val hostname = requireEnv("DATABASE_HOSTNAME")
   val port = requireEnv("DATABASE_PORT").toInt
+  val jdbcUrl = s"jdbc:postgresql://${hostname}:${port}/${dbName}"
 
   private def requireEnv(key: String) = Option(System.getenv(key))
     .getOrElse(throw new RuntimeException(s"Environment variable $key is required"))
@@ -19,8 +21,8 @@ class DatabaseConfig {
 
 class Database(dbConfig: DatabaseConfig) {
   val config = new HikariConfig()
-  config.setJdbcUrl(s"jdbc:postgres://${dbConfig.hostname}:${dbConfig.port}/${dbConfig.dbName}")
-  config.setDataSourceClassName("org.postgresql.ds.PGSimpleDataSource")
+  config.setDriverClassName(dbConfig.driverClassName)
+  config.setJdbcUrl(dbConfig.jdbcUrl)
   config.setUsername(dbConfig.username)
   config.setPassword(dbConfig.password)
   config.setAutoCommit(false)
