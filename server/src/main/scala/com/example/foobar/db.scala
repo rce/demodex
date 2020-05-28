@@ -19,17 +19,9 @@ class DatabaseConfig {
     .getOrElse(throw new RuntimeException(s"Environment variable $key is required"))
 }
 
-class Database(dbConfig: DatabaseConfig) {
-  val config = new HikariConfig()
-  config.setDriverClassName(dbConfig.driverClassName)
-  config.setJdbcUrl(dbConfig.jdbcUrl)
-  config.setUsername(dbConfig.username)
-  config.setPassword(dbConfig.password)
-  config.setAutoCommit(false)
-  val dataSource = new HikariDataSource(config)
-
+class Db(dataSource: DataSource) {
   def inTransaction[T](func: (Transaction) => T): T = {
-    withConnection { connection =>
+    dataSource.withConnection { connection =>
       try {
         val tx = new Transaction(connection)
         val result = func(tx)
@@ -43,7 +35,24 @@ class Database(dbConfig: DatabaseConfig) {
     }
   }
 
-  private def withConnection[T](func: Connection => T): T = {
+  def select[T](sql: String, params: Any*)(fun: (ResultSet) => T): Seq[T] =
+    inTransaction(_.select(sql, params:_*)(fun))
+  def selectOne[T](sql: String, params: Any*)(fun: (ResultSet) => T): Option[T] =
+    inTransaction(_.selectOne(sql, params:_*)(fun))
+  def execute[T](sql: String, params: Any*): Unit =
+    inTransaction(_.execute(sql, params:_*))
+}
+
+class DataSource(dbConfig: DatabaseConfig) {
+  val config = new HikariConfig()
+  config.setDriverClassName(dbConfig.driverClassName)
+  config.setJdbcUrl(dbConfig.jdbcUrl)
+  config.setUsername(dbConfig.username)
+  config.setPassword(dbConfig.password)
+  config.setAutoCommit(false)
+  val dataSource = new HikariDataSource(config)
+
+  def withConnection[T](func: Connection => T): T = {
     val connection = dataSource.getConnection()
     try {
       func(connection)

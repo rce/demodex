@@ -5,6 +5,7 @@ val fooAssemblySettings = Seq(
 )
 
 val log4jVersion = "2.13.1"
+val jacksonVersion = "2.11.0"
 
 lazy val root = (project in file("."))
   .settings(fooAssemblySettings: _*)
@@ -20,5 +21,7 @@ lazy val root = (project in file("."))
       "org.eclipse.jetty" % "jetty-webapp" % "9.4.27.v20200227",
       "org.postgresql" % "postgresql" % "42.2.12",
       "org.scalatra" %% "scalatra" % "2.7.0",
+      "com.fasterxml.jackson.core" % "jackson-databind" % jacksonVersion,
+      "com.fasterxml.jackson.module" %% "jackson-module-scala" % jacksonVersion,
     )
   )

@@ -1,9 +1,9 @@
 package com.example.foobar.app
 
-import com.example.foobar.{Database, DatabaseConfig, Transaction}
+import com.example.foobar.{Db, GlobalContext, Transaction}
 
 object BuildDatabaseApp extends App {
-  val db = new Database(new DatabaseConfig())
+  val db = new Db(GlobalContext.dataSource)
 
   db.inTransaction { tx =>
     renameOldSchema(tx)
