@@ -1,0 +1,3 @@
+[profile demodex-prod]
+source_profile = reaktor-rce
+role_arn = arn:aws:iam::947020699590:role/OrganizationAccountAccessRole

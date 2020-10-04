@@ -13,12 +13,26 @@ import * as certificatemanager from "@aws-cdk/aws-certificatemanager"
 import * as rds from "@aws-cdk/aws-rds"
 import * as secretsmanager from "@aws-cdk/aws-secretsmanager"
 
-const ENV = requireEnv("ENV")
+type Environment = "dev" | "prod"
+
+type EnvironmentConfig<T> = {
+  readonly [K in Environment]: T
+}
+
+const ENV = validateEnvironment(requireEnv("ENV"))
 const TAG = requireEnv("TAG")
 
-const CLOUDFFRONT_CERtIFICATE_REGION = "us-east-1"
+const CLOUDFFRONT_CERTIFICATE_REGION = "us-east-1"
 
-const domainName = "demodex.rce.fi"
+const domainName: EnvironmentConfig<string> = {
+  prod: "demodex.rce.fi",
+  dev: "dev-demodex.rce.fi"
+}
+
+const vpcCidr: EnvironmentConfig<string> = {
+  prod: "10.0.0.0/16",
+  dev: "10.1.0.0/16"
+}
 
 async function main() {
   const env = {
@@ -41,7 +55,7 @@ class HostedZoneStack extends cdk.Stack {
     super(scope, id, props)
 
     this.hostedZone = new route53.PublicHostedZone(this, "HostedZone", {
-      zoneName: domainName
+      zoneName: domainName[ENV]
     })
   }
 }
@@ -53,9 +67,7 @@ class VpcStack extends cdk.Stack {
     super(scope, id, props)
 
     this.vpc = new ec2.Vpc(this, "VPC", {
-      subnetConfiguration: [
-        { name: "Public", subnetType: ec2.SubnetType.PUBLIC },
-      ]
+      cidr: vpcCidr[ENV]
     })
   }
 }
@@ -110,13 +122,13 @@ class AppInfraStack extends cdk.Stack {
 
     const certificate = new certificatemanager.DnsValidatedCertificate(this, "Certificate", {
       hostedZone,
-      domainName,
-      region: CLOUDFFRONT_CERtIFICATE_REGION,
+      domainName: domainName[ENV],
+      region: CLOUDFFRONT_CERTIFICATE_REGION,
     })
 
     const distribution = new cloudfront.CloudFrontWebDistribution(this, "Distribution", {
       aliasConfiguration: {
-        names: [domainName],
+        names: [domainName[ENV]],
         acmCertRef: certificate.certificateArn,
       },
       originConfigs: [
@@ -165,7 +177,7 @@ class AppInfraStack extends cdk.Stack {
 
     new route53.ARecord(this, "CloudFrontDnsRecord", {
       zone: hostedZone,
-      recordName: domainName,
+      recordName: domainName[ENV],
       target: route53.RecordTarget.fromAlias(
         new route53targets.CloudFrontTarget(distribution)
       ),
@@ -266,7 +278,7 @@ class AppInfraStack extends cdk.Stack {
       internetFacing: true,
     })
 
-    const loadBalancerDomain = `backend.${domainName}`
+    const loadBalancerDomain = `backend.${domainName[ENV]}`
 
     const listenerCertificate = new certificatemanager.DnsValidatedCertificate(this, "ListenerCertificate", {
       hostedZone,
@@ -306,6 +318,16 @@ function requireEnv(name: string): string {
     throw Error(`FATAL !process.env["${name}"]`)
   }
   return value
+}
+
+function validateEnvironment(env: string): Environment {
+  switch (env) {
+    case "dev":
+    case "prod":
+      return env
+    default:
+      throw Error(`Invalid environment ${env}`)
+  }
 }
 
 main().catch(err => {

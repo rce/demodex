@@ -11,9 +11,7 @@ function main {
   export ENV="prod"
   export TAG="$(git rev-parse HEAD)"
 
-  export AWS_PROFILE="demodex-prod"
-  export AWS_REGION="eu-west-1"
-  export AWS_DEFAULT_REGION="$AWS_REGION"
+  setup_aws
 
   build_client
   build_server
@@ -28,12 +26,14 @@ function main {
 
 function deploy_base_infra {
   cd "$repo/infra"
-  deploy_stacks HostedZone VPC AppBaseInfra
+  deploy_stack HostedZone
+  deploy_stack VPC
+  deploy_stack AppBaseInfra
 }
 
 function deploy_app_infra {
   cd "$repo/infra"
-  deploy_stacks AppInfra
+  deploy_stack AppInfra
 }
 
 function deploy_client_assets {
@@ -64,8 +64,18 @@ function build_server {
   docker build -t "demodex:$TAG" .
 }
 
-function deploy_stacks {
+function deploy_stack {
   npx cdk --profile "$AWS_PROFILE" deploy --exclusively --app "npx ts-node src/Infra.ts" "$@"
+}
+
+
+function setup_aws {
+  export AWS_CONFIG_FILE="$repo/aws_config"
+  export AWS_PROFILE="demodex-$ENV"
+  export AWS_REGION="eu-west-1"
+  export AWS_DEFAULT_REGION="$AWS_REGION"
+
+  aws sts get-caller-identity
 }
 
 main "$@"
