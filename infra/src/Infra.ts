@@ -303,7 +303,7 @@ class AppInfraStack extends cdk.Stack {
     ])
     listener.addTargets("Backend", {
       port: 8080,
-      targets: [service],
+      targets: [privateService],
       healthCheck: {
         interval: cdk.Duration.seconds(30),
         protocol: elbv2.Protocol.HTTP,
