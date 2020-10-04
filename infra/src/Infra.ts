@@ -256,7 +256,7 @@ class AppInfraStack extends cdk.Stack {
       hostPort: 8080,
     })
 
-    const service = new ecs.FargateService(this, "BackendService", {
+    const publicService = new ecs.FargateService(this, "BackendService", {
       cluster,
       vpcSubnets: { subnetType: ec2.SubnetType.PUBLIC },
       platformVersion: ecs.FargatePlatformVersion.VERSION1_3,
@@ -271,7 +271,19 @@ class AppInfraStack extends cdk.Stack {
       assignPublicIp: true,
     })
 
-    db.instance.connections.allowDefaultPortFrom(service, "Allow application access")
+    db.instance.connections.allowDefaultPortFrom(publicService, "Allow application access")
+
+    const privateService = new ecs.FargateService(this, "PrivateBackendService", {
+      cluster,
+      vpcSubnets: { subnetType: ec2.SubnetType.PRIVATE },
+      platformVersion: ecs.FargatePlatformVersion.VERSION1_3,
+      taskDefinition,
+      minHealthyPercent: 100,
+      maxHealthyPercent: 200,
+      desiredCount: 1,
+    })
+
+    db.instance.connections.allowDefaultPortFrom(privateService, "Allow application access")
 
     const loadBalancer = new elbv2.ApplicationLoadBalancer(this, "LoadBalancer", {
       vpc,
