@@ -256,23 +256,6 @@ class AppInfraStack extends cdk.Stack {
       hostPort: 8080,
     })
 
-    const publicService = new ecs.FargateService(this, "BackendService", {
-      cluster,
-      vpcSubnets: { subnetType: ec2.SubnetType.PUBLIC },
-      platformVersion: ecs.FargatePlatformVersion.VERSION1_3,
-      taskDefinition,
-      minHealthyPercent: 100,
-      maxHealthyPercent: 200,
-      desiredCount: 1,
-      // https://aws.amazon.com/premiumsupport/knowledge-center/ecs-pull-container-error/
-      // If you're launching a task in a public subnet, choose ENABLED for
-      // Auto-assign public IP when you launch the task. This allows your
-      // task to have outbound network access to pull an image.
-      assignPublicIp: true,
-    })
-
-    db.instance.connections.allowDefaultPortFrom(publicService, "Allow application access")
-
     const privateService = new ecs.FargateService(this, "PrivateBackendService", {
       cluster,
       vpcSubnets: { subnetType: ec2.SubnetType.PRIVATE },
