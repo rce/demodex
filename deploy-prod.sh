@@ -18,6 +18,7 @@ function main {
 
   cd "$repo/infra"
   npm ci
+  npx cdk --profile "$AWS_PROFILE" bootstrap
   deploy_base_infra
   deploy_client_assets
   upload_server_image

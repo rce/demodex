@@ -22,7 +22,7 @@ type EnvironmentConfig<T> = {
 const ENV = validateEnvironment(requireEnv("ENV"))
 const TAG = requireEnv("TAG")
 
-const CLOUDFFRONT_CERTIFICATE_REGION = "us-east-1"
+const CLOUDFRONT_CERTIFICATE_REGION = "us-east-1"
 
 const domainName: EnvironmentConfig<string> = {
   prod: "demodex.rce.fi",
@@ -123,7 +123,7 @@ class AppInfraStack extends cdk.Stack {
     const certificate = new certificatemanager.DnsValidatedCertificate(this, "Certificate", {
       hostedZone,
       domainName: domainName[ENV],
-      region: CLOUDFFRONT_CERTIFICATE_REGION,
+      region: CLOUDFRONT_CERTIFICATE_REGION,
     })
 
     const distribution = new cloudfront.CloudFrontWebDistribution(this, "Distribution", {
