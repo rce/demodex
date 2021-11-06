@@ -37,11 +37,11 @@ object Main extends App {
 }
 
 class ScalatraBootstrap extends LifeCycle {
-  override def init(context: ServletContext) {
+  override def init(context: ServletContext): Unit = {
     context.mount(new FooApi(), "/api/*")
   }
 
-  override def destroy(context: ServletContext) {
+  override def destroy(context: ServletContext): Unit = {
     super.destroy(context)
   }
 }
