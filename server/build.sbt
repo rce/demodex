@@ -4,7 +4,7 @@ val fooAssemblySettings = Seq(
   mainClass in assembly := Some("com.example.foobar.Main"),
 )
 
-val log4jVersion = "2.13.1"
+val log4jVersion = "2.15.0"
 val jacksonVersion = "2.11.0"
 
 lazy val root = (project in file("."))
